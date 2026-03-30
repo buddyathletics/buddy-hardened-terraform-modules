@@ -37,7 +37,7 @@ variable "kms_key_arn" {
   default     = ""
 
   validation {
-    condition     = var.encryption_type != "KMS" || trim(var.kms_key_arn) != ""
+    condition     = var.encryption_type != "KMS" || trimspace(var.kms_key_arn) != ""
     error_message = "kms_key_arn is required when encryption_type is KMS."
   }
 }
