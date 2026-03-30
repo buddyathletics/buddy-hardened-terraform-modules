@@ -41,6 +41,7 @@ locals {
       tagStatus     = "tagged"
       tagPrefixList = var.lifecycle_tag_prefixes
       countType     = "imageCountMoreThan"
+      countUnit     = null
       countNumber   = var.max_tagged_image_count
     }
     action = {
