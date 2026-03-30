@@ -93,7 +93,7 @@ variable "cloudflare_tunnel_token_secret_arn" {
   default     = ""
 
   validation {
-    condition     = !var.enable_cloudflare_tunnel || trim(var.cloudflare_tunnel_token_secret_arn) != ""
+    condition     = !var.enable_cloudflare_tunnel || trimspace(var.cloudflare_tunnel_token_secret_arn) != ""
     error_message = "cloudflare_tunnel_token_secret_arn is required when enable_cloudflare_tunnel is true."
   }
 }
