@@ -24,6 +24,11 @@ variable "desired_count" {
 variable "environment" {
   description = "Environment name"
   type        = string
+
+  validation {
+    condition     = contains(["dev", "prod"], var.environment)
+    error_message = "environment must be one of: dev, prod."
+  }
 }
 
 variable "image_tag" {
@@ -32,8 +37,8 @@ variable "image_tag" {
   default     = "latest"
 }
 
-variable "repository_name" {
-  description = "App ECR repository name"
+variable "repository_name_prefix" {
+  description = "App ECR repository prefix (example: buddyapp-poc)"
   type        = string
 }
 

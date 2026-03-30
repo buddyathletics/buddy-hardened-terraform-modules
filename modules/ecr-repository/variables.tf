@@ -48,16 +48,45 @@ variable "create_lifecycle_policy" {
   default     = true
 }
 
+variable "lifecycle_policy_type" {
+  description = "Lifecycle profile for retention rules: count (default) or dev_short"
+  type        = string
+  default     = "count"
+
+  validation {
+    condition     = contains(["count", "dev_short"], var.lifecycle_policy_type)
+    error_message = "lifecycle_policy_type must be count or dev_short."
+  }
+}
+
 variable "lifecycle_tag_prefixes" {
-  description = "Tagged image prefixes included by lifecycle policy"
+  description = "Tagged image prefixes included by count-based lifecycle policy"
   type        = list(string)
   default     = ["latest", "main", "prod", "dev"]
 }
 
 variable "max_tagged_image_count" {
-  description = "Maximum number of tagged images to retain"
+  description = "Maximum number of tagged images to retain for count-based lifecycle policy"
   type        = number
   default     = 30
+}
+
+variable "dev_lifecycle_tag_prefixes" {
+  description = "Tagged image prefixes included by dev_short retention profile"
+  type        = list(string)
+  default     = ["sha-", "dev-", "latest"]
+}
+
+variable "dev_tagged_expire_days" {
+  description = "Expire tagged images older than this many days in dev_short profile"
+  type        = number
+  default     = 7
+}
+
+variable "untagged_expire_days" {
+  description = "Expire untagged images older than this many days in dev_short profile"
+  type        = number
+  default     = 1
 }
 
 variable "tags" {

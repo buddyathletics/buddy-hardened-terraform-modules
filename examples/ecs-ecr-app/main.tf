@@ -13,6 +13,11 @@ provider "aws" {
   region = var.aws_region
 }
 
+locals {
+  dev_repository_name  = "${var.repository_name_prefix}-dev"
+  prod_repository_name = "${var.repository_name_prefix}-prod"
+}
+
 data "terraform_remote_state" "shared" {
   backend = "s3"
 
@@ -23,18 +28,31 @@ data "terraform_remote_state" "shared" {
   }
 }
 
-module "ecr_repository" {
+module "ecr_repository_dev" {
   source = "../../modules/ecr-repository"
 
-  repository_name = var.repository_name
-  tags            = var.tags
+  repository_name         = local.dev_repository_name
+  image_tag_mutability    = "MUTABLE"
+  lifecycle_policy_type   = "dev_short"
+  create_lifecycle_policy = true
+  tags                    = var.tags
+}
+
+module "ecr_repository_prod" {
+  source = "../../modules/ecr-repository"
+
+  repository_name         = local.prod_repository_name
+  image_tag_mutability    = "IMMUTABLE"
+  lifecycle_policy_type   = "count"
+  create_lifecycle_policy = false
+  tags                    = var.tags
 }
 
 module "ecs_app" {
   source = "../../modules/ecs-app"
 
   app_name           = var.app_name
-  ecr_repository_url = module.ecr_repository.repository_url
+  ecr_repository_url = var.environment == "dev" ? module.ecr_repository_dev.repository_url : module.ecr_repository_prod.repository_url
   image_tag          = var.image_tag
   container_port     = var.container_port
   environment        = var.environment
