@@ -1,0 +1,31 @@
+name: Terraform Modules CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.0"
+
+      - name: Terraform format check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init + validate
+        run: |
+          set -euo pipefail
+          for dir in modules/ecr-repository modules/ecs-app examples/ecs-ecr-app; do
+            echo "Validating $dir"
+            terraform -chdir="$dir" init -backend=false -upgrade
+            terraform -chdir="$dir" validate
+          done

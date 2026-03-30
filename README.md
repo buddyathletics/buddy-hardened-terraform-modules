@@ -36,3 +36,13 @@ See `examples/ecs-ecr-app` for a reference root module.
 
 Release module changes with semantic version tags (for example `v0.1.0`).
 App repos should pin module sources to explicit tags.
+
+## CI Validation
+
+Workflow: `.github/workflows/terraform-modules-ci.yml`
+
+- Runs `terraform fmt -check -recursive`
+- Runs `terraform init -backend=false -upgrade` and `terraform validate` for:
+  - `modules/ecr-repository`
+  - `modules/ecs-app`
+  - `examples/ecs-ecr-app`
