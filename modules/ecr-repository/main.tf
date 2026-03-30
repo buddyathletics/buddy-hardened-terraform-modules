@@ -23,10 +23,11 @@ locals {
     rulePriority = 2
     description  = "Expire untagged images quickly in dev profile"
     selection = {
-      tagStatus   = "untagged"
-      countType   = "sinceImagePushed"
-      countUnit   = "days"
-      countNumber = var.untagged_expire_days
+      tagStatus     = "untagged"
+      tagPrefixList = []
+      countType     = "sinceImagePushed"
+      countUnit     = "days"
+      countNumber   = var.untagged_expire_days
     }
     action = {
       type = "expire"
