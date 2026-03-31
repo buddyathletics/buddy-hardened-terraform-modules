@@ -16,6 +16,10 @@ provider "aws" {
 locals {
   dev_repository_name  = "${var.repository_name_prefix}-dev"
   prod_repository_name = "${var.repository_name_prefix}-prod"
+
+  # Expected image lifecycle in app CI/CD:
+  # - dev repository: sha-<commit>, dev-latest
+  # - prod repository: vX.Y.Z (+ mirrored sha-<commit> after promotion)
 }
 
 data "terraform_remote_state" "shared" {
