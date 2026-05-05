@@ -8,7 +8,7 @@ locals {
     ManagedBy   = "terraform"
   })
 
-  app_container = {
+  app_container_base = {
     name  = local.app_container_name
     image = "${var.ecr_repository_url}:${var.image_tag}"
     portMappings = [{
@@ -26,6 +26,11 @@ locals {
     }
     environment = var.environment_variables
   }
+
+  app_container = length(var.container_secrets) > 0 ? merge(
+    local.app_container_base,
+    { secrets = var.container_secrets }
+  ) : local.app_container_base
 
   tunnel_container = {
     name       = local.tunnel_container_name
@@ -66,6 +71,17 @@ resource "aws_security_group" "ecs_tasks" {
     }
   }
 
+  dynamic "ingress" {
+    for_each = var.ingress_security_group_ids
+    content {
+      description     = "Optional inbound from approved source security group"
+      from_port       = var.container_port
+      to_port         = var.container_port
+      protocol        = "tcp"
+      security_groups = [ingress.value]
+    }
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -95,9 +111,34 @@ resource "aws_iam_role" "ecs_task_execution_role" {
   tags = local.common_tags
 }
 
+resource "aws_iam_role" "ecs_task_role" {
+  name = "${var.app_name}-ecs-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+
+  tags = local.common_tags
+}
+
 resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy" "task_runtime_policy" {
+  count = trimspace(var.task_role_policy_json) != "" ? 1 : 0
+
+  name   = "${var.app_name}-task-runtime-policy"
+  role   = aws_iam_role.ecs_task_role.id
+  policy = var.task_role_policy_json
 }
 
 resource "aws_iam_role_policy" "tunnel_secret_access" {
@@ -132,6 +173,7 @@ resource "aws_ecs_task_definition" "app" {
   cpu                      = var.cpu
   memory                   = var.memory
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode(
     concat(
@@ -155,6 +197,17 @@ resource "aws_ecs_service" "app" {
   deployment_circuit_breaker {
     enable   = true
     rollback = true
+  }
+
+  health_check_grace_period_seconds = trimspace(var.target_group_arn) != "" ? var.health_check_grace_period_seconds : null
+
+  dynamic "load_balancer" {
+    for_each = trimspace(var.target_group_arn) != "" ? [1] : []
+    content {
+      target_group_arn = var.target_group_arn
+      container_name   = local.app_container_name
+      container_port   = var.container_port
+    }
   }
 
   network_configuration {
