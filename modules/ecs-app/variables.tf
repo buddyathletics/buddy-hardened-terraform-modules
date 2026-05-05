@@ -60,7 +60,7 @@ variable "desired_count" {
 variable "assign_public_ip" {
   description = "Whether ECS tasks receive public IPs"
   type        = bool
-  default     = true
+  default     = false
 }
 
 variable "log_retention_days" {
@@ -75,9 +75,21 @@ variable "ingress_cidr_blocks" {
   default     = []
 }
 
+variable "ingress_security_group_ids" {
+  description = "Optional security group IDs that may reach the app container port"
+  type        = list(string)
+  default     = []
+}
+
 variable "environment_variables" {
   description = "Container environment variables"
   type        = list(object({ name = string, value = string }))
+  default     = []
+}
+
+variable "container_secrets" {
+  description = "Container secret mappings (name/valueFrom ARN) loaded by ECS at runtime"
+  type        = list(object({ name = string, valueFrom = string }))
   default     = []
 }
 
@@ -102,6 +114,24 @@ variable "cloudflared_image" {
   description = "Container image for cloudflared sidecar"
   type        = string
   default     = "cloudflare/cloudflared:latest"
+}
+
+variable "target_group_arn" {
+  description = "Optional ALB/NLB target group ARN for ECS service registration"
+  type        = string
+  default     = ""
+}
+
+variable "health_check_grace_period_seconds" {
+  description = "Health check grace period in seconds when a target group is attached"
+  type        = number
+  default     = 60
+}
+
+variable "task_role_policy_json" {
+  description = "Optional inline IAM policy JSON attached to the ECS task role"
+  type        = string
+  default     = ""
 }
 
 variable "tags" {

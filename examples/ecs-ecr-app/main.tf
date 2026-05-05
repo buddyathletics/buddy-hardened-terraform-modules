@@ -62,10 +62,11 @@ module "ecs_app" {
   environment        = var.environment
 
   vpc_id          = data.terraform_remote_state.shared.outputs.vpc_id
-  subnet_ids      = data.terraform_remote_state.shared.outputs.public_subnet_ids
+  subnet_ids      = data.terraform_remote_state.shared.outputs.private_subnet_ids
   ecs_cluster_arn = data.terraform_remote_state.shared.outputs.ecs_cluster_arn
 
-  desired_count = var.desired_count
+  desired_count    = var.desired_count
+  assign_public_ip = false
 
   enable_cloudflare_tunnel           = var.enable_cloudflare_tunnel
   cloudflare_tunnel_token_secret_arn = var.cloudflare_tunnel_token_secret_arn

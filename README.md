@@ -20,8 +20,10 @@ Creates an app-owned ECR repository with:
 Creates a standardized ECS Fargate service with:
 
 - task execution role and log group
+- task runtime role with optional inline policy injection
 - service-level security group
 - rolling deployments with circuit breaker
+- optional ALB/NLB target group registration
 - optional Cloudflare Tunnel sidecar (`cloudflared`) using Secrets Manager token
 
 ## Standard Composition Pattern
