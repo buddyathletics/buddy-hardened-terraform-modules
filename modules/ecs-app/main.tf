@@ -8,7 +8,7 @@ locals {
     ManagedBy   = "terraform"
   })
 
-  app_container_base = {
+  app_container = {
     name  = local.app_container_name
     image = "${var.ecr_repository_url}:${var.image_tag}"
     portMappings = [{
@@ -25,12 +25,8 @@ locals {
       }
     }
     environment = var.environment_variables
+    secrets     = var.container_secrets
   }
-
-  app_container = length(var.container_secrets) > 0 ? merge(
-    local.app_container_base,
-    { secrets = var.container_secrets }
-  ) : local.app_container_base
 
   tunnel_container = {
     name       = local.tunnel_container_name
