@@ -100,8 +100,14 @@ resource "aws_security_group" "ecs_tasks" {
 # v0.3.0: SG-to-SG ingress rules. Lets a frontend's SG (or a shared ALB's SG)
 # reach this service's container_port without opening any CIDR. Use this to
 # keep the API service internal-only while still allowing the frontend to call it.
+#
+# for_each is keyed by stable list index (a string), not by SG id. Indexing
+# by SG id would require those ids to be known at plan time, which fails when
+# the caller passes a freshly-created peer SG via `module.frontend.security_group_id`.
 resource "aws_security_group_rule" "ingress_from_peer_sg" {
-  for_each = toset(var.ingress_security_group_ids)
+  for_each = {
+    for idx, sg_id in var.ingress_security_group_ids : tostring(idx) => sg_id
+  }
 
   type                     = "ingress"
   from_port                = var.container_port
