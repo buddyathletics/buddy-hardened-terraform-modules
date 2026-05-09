@@ -24,6 +24,12 @@ output "task_execution_role_arn" {
   value       = aws_iam_role.ecs_task_execution_role.arn
 }
 
+# v0.3.1 additions
+output "task_role_arn" {
+  description = "ECS task role ARN — assumed by the application code at runtime to call AWS APIs. Distinct from task_execution_role_arn (which is what ECS itself uses to pull images and fetch secrets). Inline runtime policy is rendered only when var.task_role_policy_json is non-empty."
+  value       = aws_iam_role.ecs_task_role.arn
+}
+
 output "appautoscaling_target_resource_id" {
   description = "Application Auto Scaling resource ID for this service. Useful for attaching custom scaling policies outside the module."
   value       = aws_appautoscaling_target.ecs.resource_id
