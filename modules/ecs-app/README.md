@@ -114,7 +114,9 @@ The module is verified end-to-end against a real AWS account by `scripts/test-in
 | [aws_ecs_service.app](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_task_definition.app](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_iam_role.ecs_task_execution_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.ecs_task_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy.secrets_access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
+| [aws_iam_role_policy.task_runtime_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy.tunnel_secret_access](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy_attachment.ecs_task_execution_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_security_group.ecs_tasks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
@@ -163,6 +165,7 @@ The module is verified end-to-end against a real AWS account by `scripts/test-in
 | <a name="input_service_connect_port_alias"></a> [service\_connect\_port\_alias](#input\_service\_connect\_port\_alias) | DNS alias for this service inside the Service Connect namespace (e.g. "api"). When set, sibling services in the same namespace reach this service at <alias>:<container\_port>. Leave null for client-only mode (this service can call others but isn't reachable by alias). | `string` | `null` | no |
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags | `map(string)` | `{}` | no |
 | <a name="input_target_group_arn"></a> [target\_group\_arn](#input\_target\_group\_arn) | Optional ALB target group ARN. When set, the service registers as a target on the shared ALB. When null, the service is internal-only (Service Connect required for sibling-service traffic). | `string` | `null` | no |
+| <a name="input_task_role_policy_json"></a> [task\_role\_policy\_json](#input\_task\_role\_policy\_json) | Optional inline IAM policy JSON attached to the ECS task role. Use this to grant the running application code access to AWS APIs (S3, DynamoDB, SQS, etc.). Empty (default) means the task role exists but has no runtime permissions, which is correct for apps that don't call AWS at runtime. | `string` | `""` | no |
 
 ## Outputs
 
@@ -175,4 +178,5 @@ The module is verified end-to-end against a real AWS account by `scripts/test-in
 | <a name="output_security_group_id"></a> [security\_group\_id](#output\_security\_group\_id) | ECS task security group ID. Pass this as one of ingress\_security\_group\_ids on a sibling service to grant SG-to-SG access. |
 | <a name="output_task_definition_arn"></a> [task\_definition\_arn](#output\_task\_definition\_arn) | ECS task definition ARN |
 | <a name="output_task_execution_role_arn"></a> [task\_execution\_role\_arn](#output\_task\_execution\_role\_arn) | ECS task execution role ARN (extended with SSM/Secrets Manager perms when secrets is non-empty) |
+| <a name="output_task_role_arn"></a> [task\_role\_arn](#output\_task\_role\_arn) | ECS task role ARN — assumed by the application code at runtime to call AWS APIs. Distinct from task\_execution\_role\_arn (which is what ECS itself uses to pull images and fetch secrets). Inline runtime policy is rendered only when var.task\_role\_policy\_json is non-empty. |
 <!-- END_TF_DOCS -->

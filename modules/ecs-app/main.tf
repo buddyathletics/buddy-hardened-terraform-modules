@@ -140,6 +140,43 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+# v0.3.1: dedicated ECS *task* role — assumed by the running application code
+# at runtime to call AWS APIs (S3, DynamoDB, SQS, etc.). Distinct from the
+# execution role above, which is what ECS itself uses to pull the image,
+# fetch SSM/Secrets Manager values, and write CloudWatch logs.
+#
+# The role is always created so that var.task_role_policy_json can be added
+# in a later apply without forcing a task-definition recreate. When the
+# policy JSON is empty (default), the task role exists but has no inline
+# permissions — apps that don't need runtime AWS API access pay nothing.
+resource "aws_iam_role" "ecs_task_role" {
+  name = "${var.app_name}-ecs-task-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ecs-tasks.amazonaws.com"
+      }
+    }]
+  })
+
+  tags = local.common_tags
+}
+
+# v0.3.1: optional inline runtime IAM policy. Render only when the caller
+# supplies non-empty JSON; trim whitespace so an accidentally-blank heredoc
+# doesn't create an empty policy.
+resource "aws_iam_role_policy" "task_runtime_policy" {
+  count = trimspace(var.task_role_policy_json) != "" ? 1 : 0
+
+  name   = "${var.app_name}-task-runtime-policy"
+  role   = aws_iam_role.ecs_task_role.id
+  policy = var.task_role_policy_json
+}
+
 resource "aws_iam_role_policy" "tunnel_secret_access" {
   count = var.enable_cloudflare_tunnel ? 1 : 0
 
@@ -200,6 +237,7 @@ resource "aws_ecs_task_definition" "app" {
   cpu                      = var.cpu
   memory                   = var.memory
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+  task_role_arn            = aws_iam_role.ecs_task_role.arn
 
   container_definitions = jsonencode(
     concat(

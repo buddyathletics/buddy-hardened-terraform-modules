@@ -111,6 +111,18 @@ variable "tags" {
 }
 
 # ----------------------------------------------------------------------------
+# v0.3.1 additions: dedicated ECS *task* role for application-runtime IAM
+# (distinct from the execution role used by ECS itself to pull images and
+# fetch secrets). Always created; inline policy only rendered when non-empty.
+# ----------------------------------------------------------------------------
+
+variable "task_role_policy_json" {
+  description = "Optional inline IAM policy JSON attached to the ECS task role. Use this to grant the running application code access to AWS APIs (S3, DynamoDB, SQS, etc.). Empty (default) means the task role exists but has no runtime permissions, which is correct for apps that don't call AWS at runtime."
+  type        = string
+  default     = ""
+}
+
+# ----------------------------------------------------------------------------
 # v0.3.0 additions: ALB target group attach
 # ----------------------------------------------------------------------------
 
