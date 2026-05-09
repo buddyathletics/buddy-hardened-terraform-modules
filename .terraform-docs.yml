@@ -1,0 +1,63 @@
+# terraform-docs config — generates the auto-doc block injected into each
+# module's README.md between the BEGIN_TF_DOCS / END_TF_DOCS markers.
+#
+# Regenerate locally:
+#   ./scripts/docs.sh
+#
+# CI verifies these are in sync via:
+#   terraform-docs --recursive --recursive-path . markdown table .
+# (see .github/workflows/terraform-modules-ci.yml docs-check job)
+
+formatter: markdown table
+
+version: ">= 0.20"
+
+header-from: main.tf
+
+# Default content order. The `{{ .Inputs }}` etc. placeholders each emit
+# their own `## Section` header, so we don't add explicit headers here.
+content: |-
+  {{ .Requirements }}
+
+  {{ .Providers }}
+
+  {{ .Resources }}
+
+  {{ .Inputs }}
+
+  {{ .Outputs }}
+
+output:
+  file: README.md
+  mode: inject
+  template: |-
+    <!-- BEGIN_TF_DOCS -->
+    {{ .Content }}
+    <!-- END_TF_DOCS -->
+
+output-values:
+  enabled: false
+
+sort:
+  enabled: true
+  by: required
+
+settings:
+  anchor: true
+  color: true
+  default: true
+  description: true
+  escape: true
+  hide-empty: false
+  html: true
+  indent: 2
+  lockfile: false
+  read-comments: true
+  required: true
+  sensitive: true
+  type: true
+
+recursive:
+  enabled: true
+  path: modules
+  include-main: false

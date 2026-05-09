@@ -46,6 +46,7 @@ If this is a breaking change, describe the upgrade path consumers need to follow
 
 - [ ] `terraform fmt -check -recursive` passes locally
 - [ ] `terraform validate` passes for every directory in the CI matrix
+- [ ] `./scripts/docs.sh` re-run if any module input/output/resource changed (CI fails otherwise)
 - [ ] `./scripts/test-integration.sh` runs clean — apply succeeds, all assertions pass, destroy completes with zero leftover resources
 - [ ] Manual verification (describe what):
 
