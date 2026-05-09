@@ -1,0 +1,38 @@
+name: Module Docs Check
+
+# Fails the PR if anyone changes a module's variables.tf / outputs.tf without
+# regenerating its README.md via terraform-docs. Run `./scripts/docs.sh` locally
+# to fix.
+
+on:
+  pull_request:
+    paths:
+      - 'modules/**'
+      - '.terraform-docs.yml'
+      - 'scripts/docs.sh'
+      - '.github/workflows/docs-check.yml'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  docs-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install terraform-docs
+        env:
+          TFDOCS_VERSION: v0.21.0
+        run: |
+          set -euo pipefail
+          curl -fsSL "https://terraform-docs.io/dl/${TFDOCS_VERSION}/terraform-docs-${TFDOCS_VERSION}-linux-amd64.tar.gz" \
+            | tar -xz -C /tmp terraform-docs
+          sudo install -m 0755 /tmp/terraform-docs /usr/local/bin/terraform-docs
+          terraform-docs --version
+
+      - name: Verify module READMEs are in sync
+        run: ./scripts/docs.sh --check

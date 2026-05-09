@@ -1,0 +1,61 @@
+name: Integration Test
+
+# Runs the real-AWS integration test on PRs that touch the modules or test
+# harness. Disabled by default; flip the repo variable RUN_INTEGRATION_TEST=true
+# to enable. Requires OIDC trust to be set up in the AWS account first
+# (one-time IAM work, tracked separately).
+#
+# When enabled:
+#   - runs on every PR that touches modules/, examples/, scripts/, or tests/
+#   - assumes an AWS role via OIDC
+#   - executes scripts/test-integration.sh which guarantees destroy via trap
+#   - blocks merge until the test passes (set this as a required check in branch protection)
+
+on:
+  pull_request:
+    paths:
+      - 'modules/**'
+      - 'examples/**'
+      - 'scripts/test-integration.sh'
+      - 'tests/integration/**'
+      - '.github/workflows/integration-test.yml'
+  workflow_dispatch:
+
+# One integration test per branch at a time. Don't cancel — destroy MUST run.
+concurrency:
+  group: integration-test-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+    # Disabled until OIDC trust is set up. Set repo variable RUN_INTEGRATION_TEST=true
+    # AND vars.INTEGRATION_TEST_ROLE_ARN to enable.
+    if: ${{ vars.RUN_INTEGRATION_TEST == 'true' }}
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.INTEGRATION_TEST_ROLE_ARN }}
+          aws-region: us-east-1
+          role-session-name: gh-actions-integration-test
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.9.0'
+
+      - name: Run integration test (apply + assertions + auto-destroy)
+        env:
+          # Unique TEST_RUN_ID per CI run so concurrent PRs don't collide
+          # (concurrency: above also serializes within a branch).
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: |
+          export TEST_RUN_ID="ci-${GITHUB_RUN_ID}"
+          ./scripts/test-integration.sh
