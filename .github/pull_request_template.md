@@ -42,12 +42,12 @@
 
 If this is a breaking change, describe the upgrade path consumers need to follow.
 
-## Testing
+## Required checks (CI enforces these — see [AGENTS.md](../AGENTS.md))
 
 - [ ] `terraform fmt -check -recursive` passes locally
 - [ ] `terraform validate` passes for every directory in the CI matrix
-- [ ] `./scripts/docs.sh` re-run if any module input/output/resource changed (CI fails otherwise)
-- [ ] `./scripts/test-integration.sh` runs clean — apply succeeds, all assertions pass, destroy completes with zero leftover resources
+- [ ] **`./scripts/docs.sh` re-run** if any module `variables.tf`, `outputs.tf`, or resource changed. The auto-generated tables between `<!-- BEGIN_TF_DOCS -->` and `<!-- END_TF_DOCS -->` in each `modules/*/README.md` must stay in sync with the source. **`Module Docs Check / docs-check` will fail this PR if you forgot.**
+- [ ] **`./scripts/test-integration.sh` ran clean** for any module behavioral change — apply succeeded, all 9 assertions passed, `Destroy complete` printed at the end. **Must-always-destroy is mandatory; if the trap couldn't destroy, run the manual recovery command before pushing.**
 - [ ] Manual verification (describe what):
 
 <!--
