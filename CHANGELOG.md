@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/buddyathletics/buddy-hardened-terraform-modules/compare/v0.3.0...v0.3.1) (2026-05-18)
+
+
+### Documentation
+
+* refactor AGENTS.md to uniform template ([#5](https://github.com/buddyathletics/buddy-hardened-terraform-modules/issues/5)) ([31e6de1](https://github.com/buddyathletics/buddy-hardened-terraform-modules/commit/31e6de1d77e0d7969daaa8f59e9d662905c9d5fc))
+
 ## [0.3.0](https://github.com/buddyathletics/buddy-hardened-terraform-modules/compare/v0.2.3...v0.3.0) (2026-05-09)
 
 
