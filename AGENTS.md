@@ -26,23 +26,15 @@ Local prereq: `AWS_PROFILE=buddy-athletics` for the integration test.
 
 ## 3. Repo layout
 
-```
-modules/
-  ecs-app/             — Hardened ECS Fargate service module
-  ecr-repository/      — Hardened ECR repository module
-examples/
-  ecs-ecr-app/         — Reference consumer; contract test in the CI matrix
-tests/
-  integration/         — Real-AWS end-to-end test fixture for ecs-app
-scripts/
-  docs.sh              — Regenerate per-module READMEs via terraform-docs
-  test-integration.sh  — Apply + assert + must-always-destroy bash-trap runner
-docs/
-  agent-os/            — Decision records (ADRs) for this repo
-.github/
-  workflows/           — terraform-modules-ci, docs-check, integration-test, release-please
-  pull_request_template.md — Required PR checklist
-```
+- `modules/ecs-app/` — hardened ECS Fargate service module.
+- `modules/ecr-repository/` — hardened ECR repository module.
+- `examples/ecs-ecr-app/` — reference consumer; contract test in the CI matrix.
+- `tests/integration/` — real-AWS end-to-end test fixture for `ecs-app`.
+- `scripts/docs.sh` — regenerates per-module READMEs via `terraform-docs`.
+- `scripts/test-integration.sh` — apply + assert + must-always-destroy bash-trap runner.
+- `docs/agent-os/` — decision records (ADRs) for this repo.
+- `.github/workflows/` — `terraform-modules-ci`, `docs-check`, `integration-test`, `release-please`.
+- `.github/pull_request_template.md` — required PR checklist.
 
 ## 4. Local setup
 
@@ -109,7 +101,7 @@ AWS_PROFILE=buddy-athletics ./scripts/test-integration.sh
 
 This applies a real AWS test deploy of the module, runs 9 assertions on the resources/IAM/SC namespace/SG ingress, then **always destroys** via a bash trap on EXIT/INT/TERM with up to 5 retries on plugin-startup flake. Must report `Destroy complete` at the end. **If you see anything else, do not push — investigate the manual destroy command printed by the script.**
 
-CI: `Integration Test / integration-test` is committed but currently gated behind `vars.RUN_INTEGRATION_TEST == 'true'` until OIDC trust is set up (see Linear BUD-86 and [tests/README.md](tests/README.md)). Once enabled, it runs on every PR touching `modules/`, `examples/`, `scripts/`, or `tests/integration/`.
+CI: `Integration Test / integration-test` is committed but currently gated behind `vars.RUN_INTEGRATION_TEST == 'true'` until OIDC trust is set up (see Linear BUD-86 and `tests/README.md`). Once enabled, it runs on every PR touching `modules/`, `examples/`, `scripts/`, or `tests/integration/`.
 
 ### Iteration discipline (must always destroy)
 
